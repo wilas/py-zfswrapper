@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# src page: github.com/wilas/zfs-soup/
+# src page: github.com/wilas/py-zfswrapper
 #
 
 """
