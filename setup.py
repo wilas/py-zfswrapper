@@ -27,7 +27,7 @@ setup(
     description='ZFS filesystem wrapper for Python.',
     author='Kamil Wilas (wilas.pl)',
     license='Apache 2',
-    keywords='ZFS filesystem'
+    keywords='ZFS filesystem',
     url='http://github.com/wilas/py-zfswrapper/',
     py_modules=['zfswrapper'],
 )
