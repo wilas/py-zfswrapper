@@ -156,18 +156,18 @@ def zfs_list(fs=None, types='filesystem,snapshot', depth=None):
         return None
     return output.splitlines()
 
-def zfs_receive(fs, options=None, ssh_host=None):
+def zfs_receive(recv_fs, options=None, ssh_host=None):
     """Returns tuple (child process with open stdin, zfs recv command with arguments)
     
     Child process is responsible for creation a snapshot 
     whose contents are as specified in the stream provided on standard input. 
     Streams are created using the :func:`zfs_send`. Look also to :func:`zfs_teleport_snapshot`.
 
-    :param fs: zfs dataset name
-    :type fs: str
-    :param options: receive command options
+    :param recv_fs: destination zfs dataset name
+    :type recv_fs: str
+    :param options: receive command options (e.g. ['-F', '-d'])
     :type options: list or None
-    :param ssh_host: remote host
+    :param ssh_host: remote hostname
     :type ssh_host: str or None 
     :returns: tuple -- (child proces, executed command)
     """
@@ -181,21 +181,19 @@ def zfs_receive(fs, options=None, ssh_host=None):
             stderr=subprocess.PIPE, bufsize=-1)
     return (proc, cmd)
 
-def zfs_send(fs, tag, recursive=False, options=None, ssh_host=None):
+def zfs_send(send_snapshot, recursive=False, options=None, ssh_host=None):
     """Returns tuple (child process with open stdout, zfs send command with arguments)
     
     Child process is responsible for creation a stream representation of the snapshot,
     which is written to standard output. Look also to :func:`zfs_teleport_snapshot`.
 
-    :param fs: zfs filesystem/volume name
-    :type fs: str
-    :param tag: named snapshot
-    :type tag: str
+    :param send_snapshot: source zfs snapshot name (full path)
+    :type send_snapshot: str
     :param recursive: replicate the specified filesystem, and all descendent filesystems, up to the named snapshot
     :type recursive: bool, default False
     :param options: send command options
     :type options: list or None
-    :param ssh_host: remote host
+    :param ssh_host: remote hostname
     :type ssh_host: str or None 
     :returns: tuple -- (child proces, executed command)
     """
@@ -204,7 +202,7 @@ def zfs_send(fs, tag, recursive=False, options=None, ssh_host=None):
         cmd += ['-R']
     if options:
         cmd += options
-    cmd += ['%s@%s' % (fs, tag)]
+    cmd += [send_snapshot]
     if ssh_host:
         cmd = [_ssh, ssh_host] + cmd
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
@@ -232,7 +230,7 @@ def zfs_snapshot(fs, tag, recursive=False, properties=None):
 
     :param fs: zfs filesystem/volume name
     :type fs: str
-    :param tag: named snapshot
+    :param tag: snapshot tag name
     :type tag: str
     :param recursive: recursively create snapshots of all descendent datasets, snapshots are taken atomically
     :type recursive: bool, by default False
@@ -249,23 +247,21 @@ def zfs_snapshot(fs, tag, recursive=False, properties=None):
     cmd += ['%s@%s' % (fs, tag)]
     _run(cmd)
 
-def zfs_teleport_snapshot(send_fs, tag, recv_fs, recv_host=None):
+def zfs_teleport_snapshot(send_snapshot, recv_fs, recv_host=None):
     """Replicates the specified dataset using :func:`zfs_send` and :func:`zfs_receive`.
 
     .. warning::
         This is not standard command in ZFS API. 
     
-    :param send_fs: source zfs filesystem/volume name
-    :type send_fs: str
-    :param tag: named snapshot to replicate
-    :type tag: str
+    :param send_snapshot: source zfs snapshot name (full path)
+    :type send_snapshot: str
     :param recv_fs: destination zfs filesystem/volume name
     :type recv_fs: str
-    :param ssh_host: remote host
-    :type ssh_host: str or None
+    :param recv_host: destination hostname
+    :type recv_host: str or None
     :raises: :class:`ZfsException`
     """
-    sender, sender_cmd = zfs_send(send_fs, tag, recursive=True)
+    sender, sender_cmd = zfs_send(send_snapshot, recursive=True)
     receiver, receiver_cmd  = zfs_receive(recv_fs, options=['-F'], ssh_host=recv_host)
     for data in sender.stdout:
         receiver.stdin.write(data)
