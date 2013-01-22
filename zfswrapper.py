@@ -364,6 +364,38 @@ def zpool_detach(pool, device):
     cmd = [_zpool, 'detach', pool, device]
     _run(cmd)
 
+def zpool_get(pool, property='all'):
+    """Returns properties for the given zpool or None if problem with zfs.
+
+     * If a property is given, then only these properties are returned, by default all properties are returned. 
+    
+    .. warning::     
+        Not work with white space in zpool name.
+
+    Usage example:
+
+    >>> zpool_name = 'example_zpool'
+    >>> property = 'version,health'
+    >>> zpool_info = zfs.zpool_get(zpool_name, property)
+
+    :param pool: zpool name
+    :type pool: str
+    :param property: a comma-separated string of properies
+    :type property: str
+    :returns: dict or None -- pool properties
+    """
+    cmd = [_zpool, 'get', property, pool]
+    try:
+        output = _run(cmd)
+    except ZfsException:
+        return None
+    properties={}
+    # zpool get has always headers
+    for desc in output.splitlines()[1:]:
+       name, prty, val, source  = desc.split()
+       properties[prty] = val
+    return properties
+
 def zpool_list(pool=None):
     """Returns lists the given pool or None if probelm with zpool. 
     When given no arguments, all pools in the system are listed.
@@ -371,7 +403,6 @@ def zpool_list(pool=None):
     :param pool: zpool name
     :type pool: str or None
     :returns: list or None -- pools list
-
     """
     cmd = [_zpool, 'list', '-H', '-o', 'name']
     if pool:
@@ -384,3 +415,24 @@ def zpool_list(pool=None):
         return None
     return output.splitlines()
 
+def zpool_status(pool):
+    """Returns health status for the given zpool or None if problem with zfs.
+
+    Usage example:
+
+    >>> zpool_name = 'example_zpool'
+    >>> zpool_info = zfs.zpool_status(zpool_name)
+    >>> print zpool_info
+    ONLINE
+
+    :param pool: zpool name
+    :type pool: str
+    :returns: str or None -- pool status
+    """
+    cmd = [_zpool, 'list', '-H', '-o', 'health', pool]
+    try:
+        output = _run(cmd)
+    except ZfsException:
+        return None
+    status = output.rstrip()
+    return status

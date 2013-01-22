@@ -23,7 +23,7 @@ from setuptools import setup
 
 setup(
     name='py-zfswrapper',
-    version='0.2',
+    version='0.2.5',
     description='ZFS filesystem wrapper for Python.',
     author='Kamil Wilas (wilas.pl)',
     license='Apache 2',
