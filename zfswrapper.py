@@ -174,7 +174,7 @@ def zfs_receive(recv_fs, options=None, ssh_host=None):
     cmd = [_zfs, 'recv']
     if options:
         cmd += options
-    cmd += [fs]
+    cmd += [recv_fs]
     if ssh_host:
         cmd = [_ssh, ssh_host] + cmd
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, 
