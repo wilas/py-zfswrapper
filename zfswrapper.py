@@ -153,7 +153,7 @@ def zfs_list(fs=None, types='filesystem,snapshot', depth=None):
     except ZfsException:
         return None
     if not output or output.startswith('no datasets available'):
-        return None
+        return []
     return output.splitlines()
 
 def zfs_receive(recv_fs, options=None, ssh_host=None):
@@ -412,7 +412,7 @@ def zpool_list(pool=None):
     except ZfsException:
         return None
     if not output or output.startswith('no pools available'):
-        return None
+        return []
     return output.splitlines()
 
 def zpool_status(pool):
