@@ -25,17 +25,15 @@
 
 .. note::
 
-    Some OS may required change path for _zfs, _zpool, _ssh binary.
-
     Zpool and zfs manual is a must !!!
 
 """
 
 import subprocess
 
-_zfs = '/sbin/zfs'
-_zpool = '/sbin/zpool'
-_ssh = '/usr/bin/ssh'
+zfs_bin = 'zfs'
+zpool_bin = 'zpool'
+ssh_bin = 'ssh'
 
 class ZfsException(Exception):
     """Raised when any ZFS operation fails for functions in this module."""
@@ -78,7 +76,7 @@ def zfs_create(fs, properties=None):
     :type properties: dict or None
     :raises: :class:`ZfsException`
     """
-    cmd = [_zfs, 'create', '-p']
+    cmd = [zfs_bin, 'create', '-p']
     if properties:
         for property, value in properties.iteritems():
             cmd += ['-o','%s=%s' % (property, value)]
@@ -94,7 +92,7 @@ def zfs_destroy(fs, options=None):
     :type options: list or None
     :raises: :class:`ZfsException`
     """
-    cmd = [_zfs, 'destroy']
+    cmd = [zfs_bin, 'destroy']
     if options:
         cmd += options
     cmd += [fs]
@@ -114,7 +112,7 @@ def zfs_get(fs, property='all'):
     :type property: str
     :returns: dict or None -- dataset properties
     """
-    cmd = [_zfs, 'get', '-Hp', '-o', 'property,value', property, fs]
+    cmd = [zfs_bin, 'get', '-Hp', '-o', 'property,value', property, fs]
     try:
         output = _run(cmd)
     except ZfsException:
@@ -141,7 +139,7 @@ def zfs_list(fs=None, types='filesystem,snapshot', depth=None):
     :type depth: int or None
     :returns: list or None -- datasets list
     """
-    cmd = [_zfs, 'list', '-rH', '-o', 'name']
+    cmd = [zfs_bin, 'list', '-rH', '-o', 'name']
     if types:
         cmd += ['-t', types]
     if depth:
@@ -171,12 +169,12 @@ def zfs_receive(recv_fs, options=None, ssh_host=None):
     :type ssh_host: str or None 
     :returns: tuple -- (child proces, executed command)
     """
-    cmd = [_zfs, 'recv']
+    cmd = [zfs_bin, 'recv']
     if options:
         cmd += options
     cmd += [recv_fs]
     if ssh_host:
-        cmd = [_ssh, ssh_host] + cmd
+        cmd = [ssh_bin, ssh_host] + cmd
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, 
             stderr=subprocess.PIPE, bufsize=-1)
     return (proc, cmd)
@@ -197,14 +195,14 @@ def zfs_send(send_snapshot, recursive=False, options=None, ssh_host=None):
     :type ssh_host: str or None 
     :returns: tuple -- (child proces, executed command)
     """
-    cmd = [_zfs, 'send']
+    cmd = [zfs_bin, 'send']
     if recursive:
         cmd += ['-R']
     if options:
         cmd += options
     cmd += [send_snapshot]
     if ssh_host:
-        cmd = [_ssh, ssh_host] + cmd
+        cmd = [ssh_bin, ssh_host] + cmd
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE, bufsize=-1)
     return (proc, cmd)
@@ -220,7 +218,7 @@ def zfs_set(fs, property, value):
     :type value: str
     :raises: :class:`ZfsException`
     """
-    cmd = [_zfs, 'set', '%s=%s' % (property, value), fs]
+    cmd = [zfs_bin, 'set', '%s=%s' % (property, value), fs]
     _run(cmd)
 
 def zfs_snapshot(fs, tag, recursive=False, properties=None):
@@ -238,7 +236,7 @@ def zfs_snapshot(fs, tag, recursive=False, properties=None):
     :type properties: dict or None
     :raises: :class:`ZfsException`
     """
-    cmd = [_zfs, 'snapshot']
+    cmd = [zfs_bin, 'snapshot']
     if recursive:
         cmd += ['-r']
     if properties:
@@ -297,7 +295,7 @@ def zpool_add(pool, vdev):
     :type vdev: list
     :raises: :class:`ZfsException`
     """
-    cmd = [_zpool, 'add', '-f', pool] + vdev
+    cmd = [zpool_bin, 'add', '-f', pool] + vdev
     _run(cmd)
 
 def zpool_attach(pool, device, new_device):
@@ -312,7 +310,7 @@ def zpool_attach(pool, device, new_device):
     :type new_device: str
     :raises: :class:`ZfsException`
     """
-    cmd = [_zpool, 'attach', '-f', pool, device, new_device]
+    cmd = [zpool_bin, 'attach', '-f', pool, device, new_device]
     _run(cmd)
 
 def zpool_create(pool, vdev, properties=None):
@@ -333,7 +331,7 @@ def zpool_create(pool, vdev, properties=None):
     :type properties: dict or None
     :raises: :class:`ZfsException`
     """
-    cmd = [_zpool, 'create']
+    cmd = [zpool_bin, 'create']
     if properties:
         for property, value in properties.iteritems():
             cmd += ['-o','%s=%s' % (property, value)]
@@ -349,7 +347,7 @@ def zpool_destroy(pool):
     :type pool: str
     :raises: :class:`ZfsException`
     """
-    cmd = [_zpool, 'destroy', '-f', pool]
+    cmd = [zpool_bin, 'destroy', '-f', pool]
     _run(cmd)
 
 def zpool_detach(pool, device):
@@ -361,7 +359,7 @@ def zpool_detach(pool, device):
     :type device: str
     :raises: :class:`ZfsException`
     """
-    cmd = [_zpool, 'detach', pool, device]
+    cmd = [zpool_bin, 'detach', pool, device]
     _run(cmd)
 
 def zpool_get(pool, property='all'):
@@ -384,7 +382,7 @@ def zpool_get(pool, property='all'):
     :type property: str
     :returns: dict or None -- pool properties
     """
-    cmd = [_zpool, 'get', property, pool]
+    cmd = [zpool_bin, 'get', property, pool]
     try:
         output = _run(cmd)
     except ZfsException:
@@ -404,7 +402,7 @@ def zpool_list(pool=None):
     :type pool: str or None
     :returns: list or None -- pools list
     """
-    cmd = [_zpool, 'list', '-H', '-o', 'name']
+    cmd = [zpool_bin, 'list', '-H', '-o', 'name']
     if pool:
         cmd += [pool]
     try:
@@ -429,7 +427,7 @@ def zpool_status(pool):
     :type pool: str
     :returns: str or None -- pool status
     """
-    cmd = [_zpool, 'list', '-H', '-o', 'health', pool]
+    cmd = [zpool_bin, 'list', '-H', '-o', 'health', pool]
     try:
         output = _run(cmd)
     except ZfsException:
