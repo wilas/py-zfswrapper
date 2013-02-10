@@ -179,7 +179,7 @@ def zfs_receive(recv_fs, options=None, ssh_host=None):
             stderr=subprocess.PIPE, bufsize=-1)
     return (proc, cmd)
 
-def zfs_send(send_snapshot, recursive=False, options=None, ssh_host=None):
+def zfs_send(send_snapshot, recurse=False, options=None, ssh_host=None):
     """Returns tuple (child process with open stdout, zfs send command with arguments)
     
     Child process is responsible for creation a stream representation of the snapshot,
@@ -187,8 +187,8 @@ def zfs_send(send_snapshot, recursive=False, options=None, ssh_host=None):
 
     :param send_snapshot: source zfs snapshot name (full path)
     :type send_snapshot: str
-    :param recursive: replicate the specified filesystem, and all descendent filesystems, up to the named snapshot
-    :type recursive: bool, default False
+    :param recurse: replicate the specified filesystem, and all descendent filesystems, up to the named snapshot
+    :type recurse: bool, default False
     :param options: send command options
     :type options: list or None
     :param ssh_host: remote hostname
@@ -196,7 +196,7 @@ def zfs_send(send_snapshot, recursive=False, options=None, ssh_host=None):
     :returns: tuple -- (child proces, executed command)
     """
     cmd = [zfs_bin, 'send']
-    if recursive:
+    if recurse:
         cmd += ['-R']
     if options:
         cmd += options
@@ -221,7 +221,7 @@ def zfs_set(fs, property, value):
     cmd = [zfs_bin, 'set', '%s=%s' % (property, value), fs]
     _run(cmd)
 
-def zfs_snapshot(fs, tag, recursive=False, properties=None):
+def zfs_snapshot(fs, tag, recurse=False, properties=None):
     """Creates a snapshot with given name. 
     Allow customize snapshot during creation by specify properties
     or you can do it later using :func:`zfs_set`.
@@ -230,14 +230,14 @@ def zfs_snapshot(fs, tag, recursive=False, properties=None):
     :type fs: str
     :param tag: snapshot tag name
     :type tag: str
-    :param recursive: recursively create snapshots of all descendent datasets, snapshots are taken atomically
-    :type recursive: bool, by default False
+    :param recurse: recursively create snapshots of all descendent datasets, snapshots are taken atomically
+    :type recurse: bool, by default False
     :param properties: specify properties of a new created snapshot
     :type properties: dict or None
     :raises: :class:`ZfsException`
     """
     cmd = [zfs_bin, 'snapshot']
-    if recursive:
+    if recurse:
         cmd += ['-r']
     if properties:
         for property, value in properties.iteritems():
@@ -259,7 +259,7 @@ def zfs_teleport_snapshot(send_snapshot, recv_fs, recv_host=None):
     :type recv_host: str or None
     :raises: :class:`ZfsException`
     """
-    sender, sender_cmd = zfs_send(send_snapshot, recursive=True)
+    sender, sender_cmd = zfs_send(send_snapshot, recurse=True)
     receiver, receiver_cmd  = zfs_receive(recv_fs, options=['-F'], ssh_host=recv_host)
     for data in sender.stdout:
         receiver.stdin.write(data)
