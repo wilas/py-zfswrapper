@@ -3,7 +3,6 @@
 Python quick'n'dirty wrapper for ZFS filesystem. Tested with ZFS pool version 28.
 
  - platform: Linux, Unix
- - info: Some OS may required change path for _zfs, _zpool, _ssh binary.
  - !!! Zpool and zfs manual is a must
 
 Automated environment to play with ZFS and run tests: https://github.com/wilas/zfs-soup
